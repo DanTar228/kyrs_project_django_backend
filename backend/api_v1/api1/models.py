@@ -1,4 +1,3 @@
-from turtle import title
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -62,7 +61,7 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
         user = self.model(
             username=self.model.normalize_username(username=username), **extra_fields
-        )  # Create user instance
+        )  # Create user -+
         user.set_password(password)  # Hash the password
         user.save(using=self._db)  # Save to database
         return user
@@ -82,12 +81,23 @@ class User(SoftDeleteUserModel):
     USERNAME_FIELD = "username"
     objects = CustomUserManager()
 
+
 class Post(SoftDeleteModel):
-    title=models.CharField(max_length=32)
+    title = models.CharField(max_length=32)
+    description = models.TextField(max_length=256)
+    payment = models.IntegerField()
+    creator = models.ForeignKey(User, on_delete=models.PROTECT)
+    is_open = models.BooleanField(default=True)
 
 
 class GlobalAdmin(SoftDeleteModel):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
 
 
+class ResourcesData(SoftDeleteModel):
+    resource_url = models.URLField()
 
+
+class ResourcesRelation(SoftDeleteModel):
+    post = models.ForeignKey(Post, on_delete=models.PROTECT)
+    resource = models.ForeignKey(ResourcesData, on_delete=models.PROTECT)
